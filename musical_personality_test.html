@@ -1,0 +1,1606 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>音乐剧人格测试 · 你像哪一部剧？</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg: #0a0608;
+  --bg-card: #120b0f;
+  --gold: #e6c27a;
+  --gold-dim: #8b7355;
+  --red: #9e2a2a;
+  --red-bright: #c0392b;
+  --cream: #f5e6d3;
+  --text: #d4c5b2;
+  --text-dim: #8a7e72;
+  --border-glow: rgba(230, 194, 122, 0.3);
+  --font-display: 'Cinzel', 'Playfair Display', serif;
+  --font-body: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+/* ── Background texture ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(158,42,42,0.08) 0%, transparent 70%),
+    radial-gradient(ellipse at 80% 100%, rgba(230,194,122,0.04) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Screens ── */
+.screen { display:none; position:relative; z-index:1; }
+.screen.active { display:block; }
+
+/* ═══════════════════════════════════════
+   MODE SELECTION SCREEN
+   ═══════════════════════════════════════ */
+#screen-mode {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+/* Curtain background */
+.curtain-container {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+.curtain-left, .curtain-right {
+  position: absolute;
+  top: 0;
+  width: 52%;
+  height: 100%;
+  background: linear-gradient(180deg,
+    #1a0000 0%, #4a0000 5%, #7a1010 15%, #5a0808 30%,
+    #3a0404 50%, #5a0808 70%, #7a1010 85%, #4a0000 95%, #1a0000 100%
+  );
+  animation: curtainOpen 1.2s cubic-bezier(0.4,0,0.2,1) forwards;
+  animation-delay: 0.3s;
+}
+.curtain-left {
+  left: 0;
+  border-right: 3px solid var(--gold-dim);
+  box-shadow: inset -15px 0 30px rgba(0,0,0,0.5);
+  clip-path: polygon(0 0, 100% 0, 95% 100%, 0 100%);
+}
+.curtain-right {
+  right: 0;
+  border-left: 3px solid var(--gold-dim);
+  box-shadow: inset 15px 0 30px rgba(0,0,0,0.5);
+  clip-path: polygon(5% 0, 100% 0, 100% 100%, 0 100%);
+}
+@keyframes curtainOpen {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
+}
+.curtain-right {
+  animation: curtainOpenRight 1.2s cubic-bezier(0.4,0,0.2,1) forwards;
+  animation-delay: 0.3s;
+}
+@keyframes curtainOpenRight {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(100%); }
+}
+
+/* Curtain tassels */
+.curtain-tassel {
+  position: absolute;
+  bottom: 8%;
+  width: 3px;
+  height: 15%;
+  background: linear-gradient(180deg, var(--gold) 0%, var(--gold-dim) 100%);
+  border-radius: 0 0 2px 2px;
+}
+.curtain-left .curtain-tassel { right: 8%; }
+.curtain-right .curtain-tassel { left: 8%; }
+
+.mode-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  max-width: 600px;
+  animation: fadeInUp 1s ease 0.6s both;
+}
+@keyframes fadeInUp {
+  from { opacity:0; transform:translateY(30px); }
+  to { opacity:1; transform:translateY(0); }
+}
+
+.mode-title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-weight: 700;
+  color: var(--gold);
+  text-shadow: 0 0 40px rgba(230,194,122,0.3), 0 2px 4px rgba(0,0,0,0.8);
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.06em;
+}
+.mode-subtitle {
+  font-family: var(--font-display);
+  font-size: clamp(1rem, 2.2vw, 1.4rem);
+  font-weight: 400;
+  font-style: italic;
+  color: var(--text-dim);
+  margin-bottom: 3rem;
+  letter-spacing: 0.04em;
+}
+
+.mode-cards {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.mode-card {
+  flex: 1;
+  min-width: 220px;
+  max-width: 280px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-glow);
+  border-radius: 16px;
+  padding: 2rem 1.5rem;
+  cursor: pointer;
+  transition: all 0.35s ease;
+  position: relative;
+  overflow: hidden;
+}
+.mode-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 0%, rgba(230,194,122,0.06) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.35s;
+}
+.mode-card:hover::before,
+.mode-card:active::before { opacity: 1; }
+.mode-card:hover,
+.mode-card:active {
+  border-color: var(--gold);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 40px rgba(230,194,122,0.15), 0 0 0 1px var(--gold) inset;
+}
+.mode-card-icon {
+  font-size: 2.8rem;
+  margin-bottom: 1rem;
+  display: block;
+}
+.mode-card-title {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--cream);
+  margin-bottom: 0.5rem;
+}
+.mode-card-desc {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+.mode-card-badge {
+  display: inline-block;
+  margin-top: 0.8rem;
+  padding: 0.25rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  background: rgba(230,194,122,0.1);
+  color: var(--gold);
+  border: 1px solid rgba(230,194,122,0.2);
+}
+
+/* ═══════════════════════════════════════
+   TEST SCREEN
+   ═══════════════════════════════════════ */
+#screen-test {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.test-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 0;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.test-header .logo {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  color: var(--gold);
+  font-weight: 700;
+}
+.test-header .mode-badge {
+  font-size: 0.75rem;
+  padding: 0.3rem 0.8rem;
+  border-radius: 12px;
+  background: rgba(230,194,122,0.08);
+  color: var(--gold-dim);
+  border: 1px solid rgba(230,194,122,0.15);
+}
+
+/* Progress bar */
+.progress-wrap {
+  margin: 0.5rem 0 1.5rem;
+}
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.4rem;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+}
+.progress-bar {
+  height: 6px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--red-bright), var(--gold));
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+/* Question card */
+.question-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-glow);
+  border-radius: 20px;
+  padding: 2rem;
+  margin-bottom: 1.5rem;
+  position: relative;
+  transition: all 0.4s ease;
+}
+.question-card::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, var(--gold-dim), transparent, var(--red-bright));
+  opacity: 0;
+  z-index: -1;
+  transition: opacity 0.4s;
+}
+.question-card.glow::after { opacity: 0.15; }
+
+.question-number {
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  color: var(--gold-dim);
+  letter-spacing: 0.1em;
+  margin-bottom: 0.8rem;
+}
+.question-text {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--cream);
+  line-height: 1.7;
+  margin-bottom: 1.5rem;
+}
+.question-category {
+  display: inline-block;
+  font-size: 0.7rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 8px;
+  background: rgba(158,42,42,0.15);
+  color: var(--red-bright);
+  margin-bottom: 1rem;
+  letter-spacing: 0.04em;
+}
+
+/* Options */
+.options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.option-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.9rem 1.2rem;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  background: rgba(255,255,255,0.02);
+  color: var(--text);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  transition: all 0.25s ease;
+  text-align: left;
+  width: 100%;
+}
+.option-btn:hover {
+  background: rgba(230,194,122,0.06);
+  border-color: rgba(230,194,122,0.25);
+  transform: translateX(4px);
+}
+.option-btn:active {
+  background: rgba(230,194,122,0.1);
+  transform: scale(0.985);
+}
+.option-btn.selected {
+  background: rgba(230,194,122,0.12);
+  border-color: var(--gold);
+  box-shadow: 0 0 20px rgba(230,194,122,0.1), inset 0 0 0 1px rgba(230,194,122,0.15);
+  color: var(--cream);
+  font-weight: 500;
+}
+.option-btn.selected::before {
+  content: '✦';
+  position: absolute;
+  right: 1rem;
+  color: var(--gold);
+  font-size: 0.7rem;
+}
+.option-letter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.04);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-dim);
+  flex-shrink: 0;
+  transition: all 0.25s;
+}
+.option-btn.selected .option-letter {
+  background: var(--gold);
+  color: var(--bg);
+}
+
+/* Nav buttons */
+.test-nav {
+  display: flex;
+  gap: 0.8rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.btn {
+  padding: 0.85rem 2rem;
+  border-radius: 30px;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  letter-spacing: 0.03em;
+  position: relative;
+  overflow: hidden;
+}
+.btn:active { transform: scale(0.96); }
+.btn-prev {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.15);
+  color: var(--text-dim);
+}
+.btn-prev:hover {
+  border-color: rgba(255,255,255,0.3);
+  color: var(--text);
+}
+.btn-next {
+  background: linear-gradient(135deg, var(--red-bright), #8b1a1a);
+  color: #fff;
+  border: 1px solid transparent;
+}
+.btn-next:hover {
+  box-shadow: 0 4px 20px rgba(158,42,42,0.4);
+}
+.btn-result {
+  display: none;
+  background: linear-gradient(135deg, var(--gold), #c9a03a);
+  color: var(--bg);
+  font-weight: 700;
+  border: 1px solid transparent;
+}
+.btn-result:hover {
+  box-shadow: 0 4px 24px rgba(230,194,122,0.5);
+  transform: translateY(-2px);
+}
+.btn-result:active { transform: scale(0.96); }
+.btn-result.visible { display: inline-block; }
+
+/* ═══════════════════════════════════════
+   RESULTS SCREEN
+   ═══════════════════════════════════════ */
+#screen-result {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 1rem;
+}
+
+#particle-canvas {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.result-content {
+  position: relative;
+  z-index: 2;
+  max-width: 700px;
+  width: 100%;
+}
+
+.result-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  animation: fadeInUp 0.8s ease both;
+}
+.result-type {
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+  font-weight: 700;
+  color: var(--gold);
+  margin-bottom: 0.3rem;
+}
+.result-musical {
+  font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+  color: var(--cream);
+  font-weight: 300;
+  letter-spacing: 0.05em;
+}
+
+/* Icon canvas */
+.icon-wrap {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 1.5rem;
+  position: relative;
+}
+.icon-wrap canvas {
+  width: 100%;
+  height: 100%;
+}
+
+/* Dimension chart card */
+.chart-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-glow);
+  border-radius: 20px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  animation: fadeInUp 0.8s ease 0.2s both;
+}
+.chart-card h3 {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color: var(--gold);
+  margin-bottom: 1rem;
+  letter-spacing: 0.04em;
+}
+.chart-wrap {
+  position: relative;
+  height: 300px;
+}
+.chart-wrap canvas { width:100% !important; height:100% !important; }
+
+/* Match description card */
+.match-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-glow);
+  border-radius: 20px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  animation: fadeInUp 0.8s ease 0.4s both;
+}
+.match-card h3 {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color: var(--gold);
+  margin-bottom: 0.8rem;
+}
+.match-card p {
+  font-size: 0.9rem;
+  line-height: 1.8;
+  color: var(--text);
+}
+.match-quote {
+  margin-top: 1rem;
+  padding: 0.8rem 1rem;
+  border-left: 3px solid var(--gold);
+  background: rgba(230,194,122,0.04);
+  font-style: italic;
+  color: var(--gold-dim);
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+/* All musicals distance */
+.all-musicals {
+  background: var(--bg-card);
+  border: 1px solid var(--border-glow);
+  border-radius: 20px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  animation: fadeInUp 0.8s ease 0.5s both;
+}
+.all-musicals h3 {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color: var(--gold);
+  margin-bottom: 1rem;
+}
+.musical-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-size: 0.85rem;
+}
+.musical-row:last-child { border-bottom: none; }
+.musical-row .name { color: var(--cream); font-weight: 500; }
+.musical-row .region { color: var(--text-dim); font-size: 0.7rem; margin-left: 0.5rem; }
+.musical-row .match-pct {
+  color: var(--gold);
+  font-weight: 700;
+  font-size: 0.8rem;
+}
+.musical-row.best { background: rgba(230,194,122,0.04); border-radius: 8px; padding: 0.6rem 0.5rem; }
+.musical-row.best .name::before { content: '★ '; color: var(--gold); }
+
+/* Action buttons */
+.result-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  animation: fadeInUp 0.8s ease 0.6s both;
+}
+.btn-retry {
+  background: transparent;
+  border: 1px solid var(--gold);
+  color: var(--gold);
+}
+.btn-retry:hover {
+  background: rgba(230,194,122,0.08);
+}
+.btn-share {
+  background: var(--gold);
+  color: var(--bg);
+  font-weight: 700;
+}
+.btn-share:hover {
+  box-shadow: 0 4px 20px rgba(230,194,122,0.4);
+  transform: translateY(-2px);
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(120px);
+  background: var(--bg-card);
+  border: 1px solid var(--gold);
+  color: var(--cream);
+  padding: 0.8rem 1.5rem;
+  border-radius: 30px;
+  font-size: 0.85rem;
+  z-index: 100;
+  transition: transform 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
+  pointer-events: none;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* Responsive */
+@media (max-width: 640px) {
+  .mode-cards { flex-direction: column; align-items: center; }
+  .mode-card { max-width: 100%; width: 100%; }
+  .question-card { padding: 1.5rem 1rem; }
+  .question-text { font-size: 1rem; }
+  .btn { padding: 0.7rem 1.5rem; font-size: 0.85rem; }
+  .test-nav { gap: 0.5rem; }
+  .result-content { padding: 0; }
+  .chart-wrap { height: 240px; }
+  .icon-wrap { width: 90px; height: 90px; }
+}
+
+@media (max-width: 380px) {
+  .mode-title { font-size: 1.5rem; }
+  .test-header { flex-direction: column; align-items: flex-start; }
+}
+
+/* ── Accessibility: reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .curtain-left, .curtain-right { animation: none; transform: translateX(-100%); }
+  .curtain-right { transform: translateX(100%); }
+  .mode-content { animation: none; opacity: 1; }
+  .particle { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════
+     MODE SELECTION SCREEN
+     ═══════════════════════════════════ -->
+<div id="screen-mode" class="screen active">
+  <div class="curtain-container" aria-hidden="true">
+    <div class="curtain-left">
+      <div class="curtain-tassel" style="top:25%"></div>
+      <div class="curtain-tassel" style="top:40%"></div>
+      <div class="curtain-tassel" style="top:55%"></div>
+    </div>
+    <div class="curtain-right">
+      <div class="curtain-tassel" style="top:25%"></div>
+      <div class="curtain-tassel" style="top:40%"></div>
+      <div class="curtain-tassel" style="top:55%"></div>
+    </div>
+  </div>
+  <div class="mode-content">
+    <h1 class="mode-title">音乐剧人格</h1>
+    <p class="mode-subtitle">你像哪一部剧？</p>
+    <div class="mode-cards">
+      <div class="mode-card" onclick="startTest('express')" role="button" tabindex="0" aria-label="极速版 15题 约2分钟">
+        <span class="mode-card-icon">⚡</span>
+        <div class="mode-card-title">极速版</div>
+        <div class="mode-card-desc">15道精选题目，快速发现你的音乐剧灵魂伴侣</div>
+        <span class="mode-card-badge">⏱ 约 2 分钟</span>
+      </div>
+      <div class="mode-card" onclick="startTest('full')" role="button" tabindex="0" aria-label="完整版 30题 约4分钟">
+        <span class="mode-card-icon">🎭</span>
+        <div class="mode-card-title">完整版</div>
+        <div class="mode-card-desc">30道深度题目，全方位剖析你的戏剧人格</div>
+        <span class="mode-card-badge">⏱ 约 4 分钟</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     TEST SCREEN
+     ═══════════════════════════════════ -->
+<div id="screen-test" class="screen">
+  <div class="test-header">
+    <span class="logo">🎭 音乐剧人格测试</span>
+    <span class="mode-badge" id="mode-badge">完整版 · 30题</span>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-info">
+      <span id="progress-text">第 1 / 30 题</span>
+      <span id="progress-pct">0%</span>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+  </div>
+  <div class="question-card" id="question-card">
+    <div class="question-category" id="question-category"></div>
+    <div class="question-number" id="question-number"></div>
+    <div class="question-text" id="question-text"></div>
+    <div class="options-list" id="options-list"></div>
+  </div>
+  <div class="test-nav">
+    <button class="btn btn-prev" id="btn-prev" onclick="prevQuestion()">
+      <i class="fa-solid fa-chevron-left"></i> 上一题
+    </button>
+    <button class="btn btn-next" id="btn-next" onclick="nextQuestion()">
+      下一题 <i class="fa-solid fa-chevron-right"></i>
+    </button>
+    <button class="btn btn-result" id="btn-result" onclick="showResults()">
+      ✦ 查看结果 ✦
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     RESULTS SCREEN
+     ═══════════════════════════════════ -->
+<div id="screen-result" class="screen">
+  <canvas id="particle-canvas"></canvas>
+  <div class="result-content" id="result-content"></div>
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+// ╔══════════════════════════════════════════════════════════╗
+// ║               MUSICAL PERSONALITY TEST                   ║
+// ╚══════════════════════════════════════════════════════════╝
+
+// ── Constants ──────────────────────────────────────────────
+const DIM_NAMES = ['活力与社交', '情感浓度', '秩序与自律', '冒险与新奇', '同理心与角色沉浸', '审美倾向'];
+const DIM_ICONS = ['🤝', '💔', '📐', '🚀', '🎭', '✨'];
+const DIM_KEYS = ['A', 'B', 'C', 'D', 'E', 'F'];
+
+const STORAGE_KEY = 'musical_personality_test_v2';
+
+// ── Questions (30 total, express = first 15) ───────────────
+// Each: { id, text, category, weights: [A,B,C,D,E,F] }
+const QUESTIONS = [
+  // === PERSONALITY (8) ===
+  { id:1, cat:'性格特质', text:'周末我更愿意和朋友热闹聚会，而不是独自在家看书。',
+    w:[2,0,0,1,0,0] },
+  { id:2, cat:'性格特质', text:'面对陌生环境，我通常会主动上前与人攀谈。',
+    w:[2,0,0,1,0,0] },
+  { id:3, cat:'性格特质', text:'我做决定时主要依赖逻辑分析，而非直觉感受。',
+    w:[0,-1,1,0,-1,0] },
+  { id:4, cat:'性格特质', text:'我喜欢提前规划每一天的行程，而不是随遇而安。',
+    w:[0,0,2,-1,0,0] },
+  { id:5, cat:'性格特质', text:'比起一群人聊天，我更享受一对一的深度交流。',
+    w:[-1,0,0,0,1,0] },
+  { id:6, cat:'性格特质', text:'即使失败可能性很高，我也愿意尝试新鲜事物。',
+    w:[0,0,-1,2,0,0] },
+  { id:7, cat:'性格特质', text:'我很容易被电影或书中的情节打动，甚至落泪。',
+    w:[0,2,0,0,2,0] },
+  { id:8, cat:'性格特质', text:'我常因为小事而反复琢磨，难以释怀。',
+    w:[0,1,1,0,1,0] },
+
+  // === LIFESTYLE (6) ===
+  { id:9, cat:'生活习惯', text:'我喜欢房间里的每样物品都有固定的位置。',
+    w:[0,0,2,0,0,0] },
+  { id:10, cat:'生活习惯', text:'我的作息时间非常规律，很少熬夜或赖床。',
+    w:[0,0,2,-1,0,0] },
+  { id:11, cat:'生活习惯', text:'我每周至少参加一次朋友聚会或社交活动。',
+    w:[2,0,0,0,0,0] },
+  { id:12, cat:'生活习惯', text:'比起去健身房，我更喜欢在家自由锻炼或散步。',
+    w:[-1,0,-1,1,0,0] },
+  { id:13, cat:'生活习惯', text:'我会定期整理手机里的照片、文件和聊天记录。',
+    w:[0,0,2,0,0,0] },
+  { id:14, cat:'生活习惯', text:'周末我常常睡到自然醒，没有固定的日程计划。',
+    w:[0,0,-2,1,0,0] },
+
+  // === THINKING (6) ===
+  { id:15, cat:'思维倾向', text:'我更关注整体画面与氛围，而不是细枝末节。',
+    w:[0,0,-1,0,0,1] },
+  { id:16, cat:'思维倾向', text:'遇到问题时，我更相信自己的直觉而不是数据。',
+    w:[0,0,-1,0,1,0] },
+  { id:17, cat:'思维倾向', text:'我喜欢探索新的工作方法，即使旧方法仍然奏效。',
+    w:[0,0,-1,2,0,0] },
+  { id:18, cat:'思维倾向', text:'比起创新的风险，我更信赖经过验证的可靠方案。',
+    w:[0,0,1,-2,0,0] },
+  { id:19, cat:'思维倾向', text:'我能清晰地记住别人的面部表情和语调变化。',
+    w:[0,1,0,0,2,0] },
+  { id:20, cat:'思维倾向', text:'购物时我总是货比三家，理性分析后再做决定。',
+    w:[0,-1,1,0,0,0] },
+
+  // === AESTHETIC (5) ===
+  { id:21, cat:'审美偏好', text:'相比华丽繁复的装饰，我更欣赏简洁干净的设计。',
+    w:[0,0,0,0,0,-2] },
+  { id:22, cat:'审美偏好', text:'古典艺术比现代艺术更能打动我的心。',
+    w:[0,0,0,-1,0,1] },
+  { id:23, cat:'审美偏好', text:'音乐对我来说是生活中不可缺少的精神食粮。',
+    w:[0,1,0,0,1,1] },
+  { id:24, cat:'审美偏好', text:'我偏爱浓烈鲜艳的色彩，而不是素雅的色调。',
+    w:[0,1,0,0,0,2] },
+  { id:25, cat:'审美偏好', text:'看演出时，舞台的视觉效果比剧情本身更能吸引我。',
+    w:[0,0,0,0,-1,2] },
+
+  // === STAGE & NARRATIVE (5) ===
+  { id:26, cat:'舞台与叙事', text:'如果我要写一个故事，我会选择大团圆的结局。',
+    w:[0,1,0,-1,0,0] },
+  { id:27, cat:'舞台与叙事', text:'历史题材的故事比科幻或奇幻题材更吸引我。',
+    w:[0,0,0,-1,0,1] },
+  { id:28, cat:'舞台与叙事', text:'我愿意为了一部好剧，独自坐在剧场里哭一场。',
+    w:[0,2,0,0,2,0] },
+  { id:29, cat:'舞台与叙事', text:'我认为悲剧比喜剧更有深度和艺术感染力。',
+    w:[0,2,0,0,1,0] },
+  { id:30, cat:'舞台与叙事', text:'如果给我一个舞台角色，我更想演反派而不是英雄。',
+    w:[0,1,0,2,0,0] }
+];
+
+// ── Musical Database ───────────────────────────────────────
+// Vector: [A,B,C,D,E,F] each 0-5
+const MUSICALS = [
+  {
+    id:'phantom', name:'歌剧魅影', nameEn:'The Phantom of the Opera', region:'英美',
+    vector:[2,4,1,0,3,5],
+    typeName:'魅影型 · 浪漫守望者',
+    desc:'你内心深处住着一位对美与爱极致渴望的灵魂。你敏感、深情，相信黑暗中也能开出最绚烂的花。你的情感世界丰富如地宫深处的乐章，表面沉静，内里汹涌——这正是《歌剧魅影》的浪漫主义核心。',
+    quote:'"The Music of the Night" — 让黑夜的音乐拥抱你最真实的样子。',
+    icon:'mask', color:'#9e2a2a'
+  },
+  {
+    id:'hamilton', name:'汉密尔顿', nameEn:'Hamilton', region:'英美',
+    vector:[5,3,2,5,2,2],
+    typeName:'汉密尔顿型 · 时代开拓者',
+    desc:'你精力充沛、敢想敢做，天生就是推动变革的力量。你不满足于现状，永远在寻找下一个突破点。你的生命节奏如说唱歌词般紧凑有力——这与《汉密尔顿》的创新精神与不屈斗志不谋而合。',
+    quote:'"I am not throwing away my shot!" — 机会来了就绝不放手。',
+    icon:'star', color:'#d4a017'
+  },
+  {
+    id:'lesmis', name:'悲惨世界', nameEn:'Les Misérables', region:'英美',
+    vector:[3,5,3,1,5,1],
+    typeName:'安灼拉型 · 理想殉道者',
+    desc:'你心怀大爱，对他人的苦难有着深刻的共情。你相信正义与救赎的力量，愿意为理想付出一切。你的人格底色是燃烧的红与深沉的黑——你属于街垒之上高擎旗帜的《悲惨世界》。',
+    quote:'"To love another person is to see the face of God." — 爱是看见神的面容。',
+    icon:'flag', color:'#c0392b'
+  },
+  {
+    id:'elisabeth', name:'伊丽莎白', nameEn:'Elisabeth', region:'德奥',
+    vector:[2,4,4,2,4,3],
+    typeName:'伊丽莎白型 · 自由追寻者',
+    desc:'你渴望自由，不愿被任何枷锁束缚——无论是世俗的眼光还是既定的命运。你有强烈的自我意识，在秩序与反叛之间保持着优雅的平衡。你属于群山之巅独舞的《伊丽莎白》。',
+    quote:'"Ich gehör nur mir" — 我只属于我自己。',
+    icon:'crown', color:'#6b3fa0'
+  },
+  {
+    id:'mozart', name:'莫扎特！', nameEn:'Mozart!', region:'德奥',
+    vector:[3,3,2,4,3,2],
+    typeName:'莫扎特型 · 天才逐梦人',
+    desc:'你拥有不羁的创造力与一颗赤子之心。规则对你来说是参考，而非枷锁；你用才华与热情对抗平庸。你的人生如《莫扎特！》的旋律——既有天才的璀璨，也有与命运博弈的挣扎。',
+    quote:'"Wie wird man seinen Schatten los?" — 人如何才能摆脱自己的影子？',
+    icon:'note', color:'#c9a03a'
+  },
+  {
+    id:'romeo', name:'罗密欧与朱丽叶', nameEn:'Roméo et Juliette', region:'法语',
+    vector:[4,5,1,3,4,4],
+    typeName:'罗朱型 · 炽热浪漫派',
+    desc:'你相信一见钟情的魔力，愿意为爱燃烧自己。你的情感纯粹而热烈，不惧世俗的眼光与阻碍。你的灵魂属于维罗纳的星空下——那部永恒的《罗密欧与朱丽叶》。',
+    quote:'"Aimer, c\'est ce qu\'y a d\'plus beau" — 爱，是世间最美的事。',
+    icon:'rose', color:'#e84855'
+  },
+  {
+    id:'notredame', name:'巴黎圣母院', nameEn:'Notre-Dame de Paris', region:'法语',
+    vector:[1,5,2,1,5,3],
+    typeName:'卡西莫多型 · 灵魂守护者',
+    desc:'你外表或许沉静甚至疏离，但内心有着最炽热的深情。你默默守护着珍视的一切，不索求回报。你的故事属于钟楼之巅的《巴黎圣母院》——美与丑、爱与殇的永恒交响。',
+    quote:'"Belle, c\'est un mot qu\'on dirait inventé pour elle" — 美丽，仿佛就是为她而创造的词。',
+    icon:'bell', color:'#5d4e37'
+  },
+  {
+    id:'rockmozart', name:'摇滚莫扎特', nameEn:'Mozart l\'Opéra Rock', region:'法语',
+    vector:[4,4,0,5,3,4],
+    typeName:'摇滚莫扎特型 · 叛逆艺术家',
+    desc:'你拒绝被定义，活在世俗规则的边界之外。你的创造力如闪电般迸发，你的生活方式是一场永不落幕的演出。你属于那个颠覆古典、引爆舞台的《摇滚莫扎特》。',
+    quote:'"Je dors sur des roses qui signent ma croix" — 我安睡于玫瑰之上，它们刻画出我的十字架。',
+    icon:'guitar', color:'#e74c3c'
+  }
+];
+
+// ── Dimension contribution ranges ──────────────────────────
+// Compute max possible absolute contribution for a given question set
+function computeDimRanges(questions) {
+  const ranges = [0,0,0,0,0,0];
+  questions.forEach(q => {
+    for (let d=0; d<6; d++) {
+      ranges[d] += Math.abs(q.w[d]) * 2; // max 2 pts per question * weight
+    }
+  });
+  return ranges; // each range is the max possible sum (when all answers are extreme)
+}
+
+// ── State ──────────────────────────────────────────────────
+let state = {
+  mode: null,         // 'express' | 'full'
+  totalQuestions: 0,
+  currentIndex: 0,
+  answers: {}         // { questionId: answerValue(-2..2) }
+};
+
+// ── localStorage helpers ───────────────────────────────────
+function lsAvailable() {
+  try { const k='__ls_test__'; localStorage.setItem(k,k); localStorage.removeItem(k); return true; }
+  catch(e) { return false; }
+}
+function saveState() {
+  if (!lsAvailable()) return;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({
+    mode: state.mode,
+    totalQuestions: state.totalQuestions,
+    currentIndex: state.currentIndex,
+    answers: state.answers,
+    timestamp: Date.now()
+  }));
+}
+function loadState() {
+  if (!lsAvailable()) return false;
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) return false;
+  try {
+    const data = JSON.parse(raw);
+    if (!data.mode || !data.answers) return false;
+    // Expire after 24 hours
+    if (Date.now() - data.timestamp > 86400000) { clearState(); return false; }
+    state.mode = data.mode;
+    state.totalQuestions = data.totalQuestions;
+    state.currentIndex = data.currentIndex;
+    state.answers = data.answers;
+    return true;
+  } catch(e) { return false; }
+}
+function clearState() {
+  state.answers = {};
+  state.currentIndex = 0;
+  if (lsAvailable()) localStorage.removeItem(STORAGE_KEY);
+}
+
+// ── Screen management ──────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if (id === 'screen-result') {
+    initParticles();
+  } else {
+    stopParticles();
+  }
+}
+
+// ── Start Test ─────────────────────────────────────────────
+function startTest(mode) {
+  clearState();
+  state.mode = mode;
+  state.totalQuestions = mode === 'express' ? 15 : 30;
+  state.currentIndex = 0;
+  state.answers = {};
+
+  document.getElementById('mode-badge').textContent =
+    mode === 'express' ? '极速版 · 15题' : '完整版 · 30题';
+
+  showScreen('screen-test');
+  renderQuestion();
+  saveState();
+}
+
+// ── Render Question ────────────────────────────────────────
+function renderQuestion() {
+  const q = QUESTIONS[state.currentIndex];
+  const total = state.totalQuestions;
+  const idx = state.currentIndex;
+  const pct = Math.round(((idx) / total) * 100);
+
+  document.getElementById('question-category').textContent = q.cat;
+  document.getElementById('question-number').textContent =
+    `第 ${idx + 1} 题 / 共 ${total} 题`;
+  document.getElementById('question-text').textContent = q.text;
+  document.getElementById('progress-text').textContent = `第 ${idx + 1} / ${total} 题`;
+  document.getElementById('progress-pct').textContent = `${pct}%`;
+  document.getElementById('progress-fill').style.width = `${pct}%`;
+
+  // Glow effect
+  const card = document.getElementById('question-card');
+  card.classList.remove('glow');
+  void card.offsetWidth;
+  card.classList.add('glow');
+
+  // Options
+  const options = [
+    { label:'非常同意', value:2, letter:'A' },
+    { label:'同意',     value:1, letter:'B' },
+    { label:'中立',     value:0, letter:'C' },
+    { label:'不同意',   value:-1, letter:'D' },
+    { label:'非常不同意', value:-2, letter:'E' }
+  ];
+
+  const currentAnswer = state.answers[q.id];
+
+  const list = document.getElementById('options-list');
+  list.innerHTML = '';
+  options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    if (currentAnswer === opt.value) btn.classList.add('selected');
+    btn.innerHTML = `
+      <span class="option-letter">${opt.letter}</span>
+      <span>${opt.label}</span>
+    `;
+    btn.addEventListener('click', () => selectAnswer(q.id, opt.value));
+    list.appendChild(btn);
+  });
+
+  // Navigation buttons
+  document.getElementById('btn-prev').style.display = idx === 0 ? 'none' : '';
+  const isLastQuestion = idx === total - 1;
+  document.getElementById('btn-next').style.display = isLastQuestion ? 'none' : '';
+
+  const btnResult = document.getElementById('btn-result');
+  const allAnswered = total === 15
+    ? QUESTIONS.slice(0,15).every(qq => state.answers[qq.id] !== undefined)
+    : QUESTIONS.every(qq => state.answers[qq.id] !== undefined);
+
+  if (allAnswered) {
+    btnResult.classList.add('visible');
+  } else {
+    btnResult.classList.remove('visible');
+  }
+
+  // Scroll to top of card
+  document.getElementById('question-card').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+// ── Select Answer ──────────────────────────────────────────
+function selectAnswer(questionId, value) {
+  state.answers[questionId] = value;
+  saveState();
+  renderQuestion(); // re-render to update selection highlight & result button
+}
+
+// ── Navigation ─────────────────────────────────────────────
+function nextQuestion() {
+  if (state.currentIndex < state.totalQuestions - 1) {
+    state.currentIndex++;
+    saveState();
+    renderQuestion();
+  }
+}
+function prevQuestion() {
+  if (state.currentIndex > 0) {
+    state.currentIndex--;
+    saveState();
+    renderQuestion();
+  }
+}
+
+// ── Scoring Engine ─────────────────────────────────────────
+function calculateScores() {
+  const rawScores = [0,0,0,0,0,0];
+  const answeredQuestions = state.mode === 'express'
+    ? QUESTIONS.slice(0, 15)
+    : QUESTIONS;
+
+  answeredQuestions.forEach(q => {
+    const answer = state.answers[q.id];
+    if (answer === undefined) return; // skip unanswered (shouldn't happen)
+    for (let d=0; d<6; d++) {
+      rawScores[d] += answer * q.w[d];
+    }
+  });
+
+  // Compute ranges dynamically based on the actual question set used
+  const ranges = computeDimRanges(answeredQuestions);
+
+  // Normalize to 0-100%
+  const percentages = rawScores.map((raw, d) => {
+    const maxAbs = ranges[d];
+    if (maxAbs === 0) return 50; // neutral
+    // Map [-maxAbs, +maxAbs] to [0, 100]
+    const pct = ((raw + maxAbs) / (2 * maxAbs)) * 100;
+    return Math.round(Math.max(0, Math.min(100, pct)));
+  });
+
+  return { raw: rawScores, pct: percentages };
+}
+
+// ── Matching Engine ────────────────────────────────────────
+function findBestMatch(userPct) {
+  // Scale user percentages (0-100) to 0-5 scale
+  const userVec = userPct.map(p => p / 20);
+
+  // Compute Euclidean distance to each musical
+  const distances = MUSICALS.map(m => {
+    let sumSq = 0;
+    for (let d=0; d<6; d++) {
+      sumSq += Math.pow(userVec[d] - m.vector[d], 2);
+    }
+    return {
+      musical: m,
+      distance: Math.sqrt(sumSq),
+      // Convert to match percentage (inverse, scaled)
+      matchPct: Math.round(Math.max(0, 100 - (Math.sqrt(sumSq) / Math.sqrt(6 * 25)) * 100))
+    };
+  });
+
+  distances.sort((a,b) => a.distance - b.distance);
+  return distances;
+}
+
+// ── Show Results ───────────────────────────────────────────
+function showResults() {
+  const total = state.totalQuestions;
+  const answeredCount = Object.keys(state.answers).length;
+  if (answeredCount < total) return;
+
+  const { raw, pct } = calculateScores();
+  const rankings = findBestMatch(pct);
+  const best = rankings[0];
+
+  showScreen('screen-result');
+  renderResults(best, rankings, pct);
+  saveState();
+}
+
+// ── Render Results ─────────────────────────────────────────
+function renderResults(best, rankings, pct) {
+  const m = best.musical;
+  const container = document.getElementById('result-content');
+
+  container.innerHTML = `
+    <div class="result-header">
+      <div class="result-type">${m.typeName}</div>
+      <div class="result-musical">
+        ${m.region}音乐剧 · 《${m.name}》
+        <span style="font-size:0.8em;color:var(--text-dim)">${m.nameEn}</span>
+      </div>
+    </div>
+    <div class="icon-wrap">
+      <canvas id="icon-canvas" width="240" height="240"></canvas>
+    </div>
+
+    <div class="chart-card">
+      <h3>📊 六维人格画像</h3>
+      <div class="chart-wrap">
+        <canvas id="dim-chart"></canvas>
+      </div>
+    </div>
+
+    <div class="match-card">
+      <h3>💫 匹配解读</h3>
+      <p>${m.desc}</p>
+      <div class="match-quote">${m.quote}</div>
+    </div>
+
+    <div class="all-musicals">
+      <h3>🎬 完整匹配度排名</h3>
+      ${rankings.map((r,i) => `
+        <div class="musical-row${i===0?' best':''}">
+          <span>
+            <span class="name">${r.musical.name}</span>
+            <span class="region">${r.musical.region} · ${r.musical.nameEn}</span>
+          </span>
+          <span class="match-pct">${r.matchPct}% 匹配</span>
+        </div>
+      `).join('')}
+    </div>
+
+    <div class="result-actions">
+      <button class="btn btn-retry" onclick="retryTest()">
+        <i class="fa-solid fa-rotate-right"></i> 重新测试
+      </button>
+      <button class="btn btn-share" onclick="shareResult()">
+        <i class="fa-solid fa-share-nodes"></i> 分享结果
+      </button>
+    </div>
+  `;
+
+  // Draw icon
+  setTimeout(() => drawIcon(m.icon, m.color), 100);
+  // Draw chart
+  setTimeout(() => drawChart(pct), 200);
+}
+
+// ── Canvas Icon Drawing ────────────────────────────────────
+function drawIcon(type, color) {
+  const canvas = document.getElementById('icon-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+  ctx.clearRect(0,0,w,h);
+
+  const cx = w/2, cy = h/2;
+  const scale = w / 240;
+
+  // Background glow
+  const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, 110*scale);
+  glow.addColorStop(0, color + '30');
+  glow.addColorStop(1, 'transparent');
+  ctx.fillStyle = glow;
+  ctx.fillRect(0,0,w,h);
+
+  ctx.fillStyle = color;
+  ctx.strokeStyle = '#e6c27a';
+  ctx.lineWidth = 2.5 * scale;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  switch(type) {
+    case 'mask': // Phantom mask
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, 50*scale, 65*scale, 0, 0, Math.PI*2);
+      ctx.fill();
+      // Eye holes
+      ctx.fillStyle = '#0a0608';
+      ctx.beginPath();
+      ctx.ellipse(cx-18*scale, cy-15*scale, 12*scale, 16*scale, 0.1, 0, Math.PI*2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(cx+18*scale, cy-15*scale, 12*scale, 16*scale, -0.1, 0, Math.PI*2);
+      ctx.fill();
+      // Mouth line
+      ctx.strokeStyle = '#0a0608';
+      ctx.lineWidth = 2*scale;
+      ctx.beginPath();
+      ctx.moveTo(cx-25*scale, cy+25*scale);
+      ctx.quadraticCurveTo(cx, cy+45*scale, cx+25*scale, cy+25*scale);
+      ctx.stroke();
+      break;
+
+    case 'star': // Hamilton star
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      const spikes = 5, outerR = 60*scale, innerR = 28*scale;
+      for (let i=0; i<spikes*2; i++) {
+        const r = i%2===0 ? outerR : innerR;
+        const angle = (i * Math.PI / spikes) - Math.PI/2;
+        const x = cx + Math.cos(angle) * r;
+        const y = cy + Math.sin(angle) * r;
+        i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = '#e6c27a';
+      ctx.lineWidth = 2*scale;
+      ctx.stroke();
+      break;
+
+    case 'flag': // Les Mis flag
+      ctx.fillStyle = color;
+      // Pole
+      ctx.fillRect(cx-40*scale, cy-55*scale, 5*scale, 110*scale);
+      // Flag
+      ctx.beginPath();
+      ctx.moveTo(cx-35*scale, cy-55*scale);
+      ctx.lineTo(cx+40*scale, cy-35*scale);
+      ctx.lineTo(cx-35*scale, cy-10*scale);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = '#e6c27a';
+      ctx.lineWidth = 2*scale;
+      ctx.stroke();
+      break;
+
+    case 'crown': // Elisabeth crown
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.moveTo(cx-55*scale, cy+20*scale);
+      ctx.lineTo(cx-55*scale, cy-30*scale);
+      ctx.lineTo(cx-40*scale, cy-20*scale);
+      ctx.lineTo(cx-20*scale, cy-60*scale);
+      ctx.lineTo(cx, cy-25*scale);
+      ctx.lineTo(cx+20*scale, cy-60*scale);
+      ctx.lineTo(cx+40*scale, cy-20*scale);
+      ctx.lineTo(cx+55*scale, cy-30*scale);
+      ctx.lineTo(cx+55*scale, cy+20*scale);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = '#e6c27a';
+      ctx.stroke();
+      // Jewels
+      ctx.fillStyle = '#e6c27a';
+      ctx.beginPath(); ctx.arc(cx-20*scale, cy-50*scale, 5*scale, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(cx, cy-10*scale, 5*scale, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(cx+20*scale, cy-50*scale, 5*scale, 0, Math.PI*2); ctx.fill();
+      break;
+
+    case 'note': // Mozart! musical note
+      ctx.fillStyle = color;
+      ctx.font = `${100*scale}px serif`;
+      ctx.fillText('♪', cx-35*scale, cy+30*scale);
+      ctx.fillText('♫', cx+5*scale, cy-15*scale);
+      break;
+
+    case 'rose': // Romeo rose
+      // Stem
+      ctx.strokeStyle = '#4a7c3f';
+      ctx.lineWidth = 4*scale;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy+70*scale);
+      ctx.quadraticCurveTo(cx+10*scale, cy+20*scale, cx, cy);
+      ctx.stroke();
+      // Leaves
+      ctx.fillStyle = '#4a7c3f';
+      ctx.beginPath(); ctx.ellipse(cx+15*scale, cy+30*scale, 15*scale, 7*scale, 0.5, 0, Math.PI*2); ctx.fill();
+      // Petals
+      ctx.fillStyle = color;
+      const petalCount = 8;
+      for (let i=0; i<petalCount; i++) {
+        const angle = (i / petalCount) * Math.PI * 2;
+        const px = cx + Math.cos(angle) * 20*scale;
+        const py = cy + Math.sin(angle) * 20*scale;
+        ctx.beginPath();
+        ctx.arc(px, py, 18*scale, angle-0.4, angle+0.4);
+        ctx.fill();
+      }
+      // Center
+      ctx.fillStyle = '#e6c27a';
+      ctx.beginPath(); ctx.arc(cx, cy, 10*scale, 0, Math.PI*2); ctx.fill();
+      break;
+
+    case 'bell': // Notre-Dame bell
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.moveTo(cx-40*scale, cy-20*scale);
+      ctx.quadraticCurveTo(cx-45*scale, cy+40*scale, cx-30*scale, cy+55*scale);
+      ctx.lineTo(cx+30*scale, cy+55*scale);
+      ctx.quadraticCurveTo(cx+45*scale, cy+40*scale, cx+40*scale, cy-20*scale);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = '#e6c27a';
+      ctx.stroke();
+      // Clapper
+      ctx.fillStyle = '#e6c27a';
+      ctx.beginPath(); ctx.arc(cx, cy+35*scale, 12*scale, 0, Math.PI*2); ctx.fill();
+      ctx.fillRect(cx-3*scale, cy-15*scale, 6*scale, 50*scale);
+      break;
+
+    case 'guitar': // Rock Mozart electric guitar
+      ctx.fillStyle = color;
+      // Body
+      ctx.beginPath();
+      ctx.ellipse(cx, cy+10*scale, 30*scale, 45*scale, 0, 0, Math.PI*2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(cx, cy+10*scale, 18*scale, 32*scale, 0, 0, Math.PI*2);
+      ctx.fillStyle = '#0a0608';
+      ctx.fill();
+      // Neck
+      ctx.fillStyle = '#5d3a1a';
+      ctx.fillRect(cx-5*scale, cy-70*scale, 10*scale, 70*scale);
+      // Headstock
+      ctx.fillRect(cx-7*scale, cy-85*scale, 14*scale, 18*scale);
+      // Pickups
+      ctx.fillStyle = '#333';
+      ctx.fillRect(cx-15*scale, cy-5*scale, 30*scale, 8*scale);
+      ctx.fillRect(cx-15*scale, cy+15*scale, 30*scale, 8*scale);
+      // Strings
+      ctx.strokeStyle = '#ccc';
+      ctx.lineWidth = 1*scale;
+      for (let s=-1; s<=1; s++) {
+        ctx.beginPath();
+        ctx.moveTo(cx+s*4*scale, cy-85*scale);
+        ctx.lineTo(cx+s*3*scale, cy+50*scale);
+        ctx.stroke();
+      }
+      break;
+  }
+}
+
+// ── Chart Drawing ──────────────────────────────────────────
+let chartInstance = null;
+function drawChart(pct) {
+  const canvas = document.getElementById('dim-chart');
+  if (!canvas) return;
+  if (chartInstance) chartInstance.destroy();
+
+  const ctx = canvas.getContext('2d');
+  chartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: DIM_NAMES.map((n,i) => `${DIM_ICONS[i]} ${n}`),
+      datasets: [{
+        label: '得分 (%)',
+        data: pct,
+        backgroundColor: pct.map(v => {
+          if (v >= 70) return 'rgba(230,194,122,0.8)';
+          if (v >= 50) return 'rgba(230,194,122,0.5)';
+          if (v >= 30) return 'rgba(158,42,42,0.5)';
+          return 'rgba(139,115,85,0.5)';
+        }),
+        borderColor: pct.map(v => {
+          if (v >= 70) return '#e6c27a';
+          if (v >= 50) return 'rgba(230,194,122,0.7)';
+          return 'rgba(158,42,42,0.6)';
+        }),
+        borderWidth: 1.5,
+        borderRadius: 6,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => ` ${ctx.raw}%`
+          }
+        }
+      },
+      scales: {
+        x: {
+          min: 0,
+          max: 100,
+          grid: { color: 'rgba(255,255,255,0.05)' },
+          ticks: {
+            color: '#8a7e72',
+            font: { size: 10 },
+            callback: v => v + '%'
+          }
+        },
+        y: {
+          grid: { display: false },
+          ticks: {
+            color: '#d4c5b2',
+            font: { size: 13, family: "'Noto Sans SC', sans-serif" }
+          }
+        }
+      }
+    }
+  });
+}
+
+// ── Particle Animation ─────────────────────────────────────
+let particleRAF = null;
+function initParticles() {
+  const canvas = document.getElementById('particle-canvas');
+  if (!canvas) return;
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const ctx = canvas.getContext('2d');
+
+  const particles = [];
+  const count = 60;
+
+  for (let i=0; i<count; i++) {
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      size: Math.random() * 3 + 1,
+      speedY: Math.random() * 0.6 + 0.2,
+      speedX: (Math.random() - 0.5) * 0.4,
+      opacity: Math.random() * 0.6 + 0.2,
+      wobble: Math.random() * Math.PI * 2,
+      wobbleSpeed: Math.random() * 0.02 + 0.005
+    });
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => {
+      p.y += p.speedY;
+      p.x += p.speedX + Math.sin(p.wobble) * 0.3;
+      p.wobble += p.wobbleSpeed;
+      if (p.y > canvas.height + 10) { p.y = -10; p.x = Math.random() * canvas.width; }
+      if (p.x < -10) p.x = canvas.width + 10;
+      if (p.x > canvas.width + 10) p.x = -10;
+
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(230,194,122,${p.opacity})`;
+      ctx.fill();
+
+      // Tiny glow
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size * 2.5, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(230,194,122,${p.opacity * 0.15})`;
+      ctx.fill();
+    });
+    particleRAF = requestAnimationFrame(animate);
+  }
+  animate();
+
+  // Handle resize
+  const resizeHandler = () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  };
+  window.addEventListener('resize', resizeHandler);
+  canvas._resizeHandler = resizeHandler;
+}
+
+function stopParticles() {
+  if (particleRAF) { cancelAnimationFrame(particleRAF); particleRAF = null; }
+  const canvas = document.getElementById('particle-canvas');
+  if (canvas && canvas._resizeHandler) {
+    window.removeEventListener('resize', canvas._resizeHandler);
+  }
+}
+
+// ── Share ──────────────────────────────────────────────────
+function shareResult() {
+  const { pct } = calculateScores();
+  const rankings = findBestMatch(pct);
+  const best = rankings[0].musical;
+
+  const text = `🎭 我的音乐剧人格：${best.typeName}\n` +
+    `最匹配的音乐剧：《${best.name}》（${best.nameEn}）\n` +
+    `📊 六维得分：\n` +
+    DIM_NAMES.map((n,i) => `  ${DIM_ICONS[i]} ${n}：${pct[i]}%`).join('\n') +
+    `\n"${best.quote.replace(/"/g,'')}"\n` +
+    `来测测你的音乐剧人格 →`;
+
+  if (navigator.share) {
+    navigator.share({ title:'音乐剧人格测试', text }).catch(() => {});
+  } else {
+    navigator.clipboard.writeText(text).then(() => {
+      showToast('✅ 结果已复制到剪贴板！');
+    }).catch(() => {
+      showToast('📋 分享文本已生成（请手动复制上方内容）');
+    });
+  }
+}
+
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2500);
+}
+
+// ── Retry ──────────────────────────────────────────────────
+function retryTest() {
+  clearState();
+  showScreen('screen-mode');
+}
+
+// ── Keyboard Navigation ────────────────────────────────────
+document.addEventListener('keydown', e => {
+  const testScreen = document.getElementById('screen-test');
+  if (!testScreen.classList.contains('active')) return;
+
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+    e.preventDefault();
+    const isLast = state.currentIndex === state.totalQuestions - 1;
+    if (isLast) {
+      const allDone = (state.totalQuestions === 15
+        ? QUESTIONS.slice(0,15).every(q => state.answers[q.id] !== undefined)
+        : QUESTIONS.every(q => state.answers[q.id] !== undefined));
+      if (allDone) showResults();
+    } else {
+      nextQuestion();
+    }
+  } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    prevQuestion();
+  } else if (e.key >= '1' && e.key <= '5') {
+    e.preventDefault();
+    const idx = parseInt(e.key) - 1;
+    const values = [2,1,0,-1,-2];
+    const q = QUESTIONS[state.currentIndex];
+    selectAnswer(q.id, values[idx]);
+  }
+});
+
+// ── Init ────────────────────────────────────────────────────
+(function init() {
+  // Try to resume from localStorage
+  if (loadState() && Object.keys(state.answers).length > 0) {
+    // Resume test
+    document.getElementById('mode-badge').textContent =
+      state.mode === 'express' ? '极速版 · 15题' : '完整版 · 30题';
+    showScreen('screen-test');
+    renderQuestion();
+  } else {
+    clearState();
+    showScreen('screen-mode');
+  }
+
+  // Handle page unload
+  window.addEventListener('beforeunload', () => {
+    if (Object.keys(state.answers).length > 0 && !document.getElementById('screen-result').classList.contains('active')) {
+      saveState();
+    }
+  });
+
+  console.log('🎭 音乐剧人格测试已就绪');
+  console.log('  极速版 15题 | 完整版 30题');
+  console.log('  支持键盘操作: 1-5 选择答案, ← → 切换题目');
+  console.log('  进度自动保存到本地浏览器');
+})();
+</script>
+</body>
+</html>
